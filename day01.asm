@@ -102,6 +102,8 @@ loop_copy:
 	# PART 1 #
 	##########
 	
+	# compute sum of differences
+
 	clr	s3
 	mv	s10, s0
 	mv	s11, s1
@@ -123,7 +125,6 @@ loop_compute:
 	call	printf
 
 
-stop_here:
 
 	##########
 	# PART 2 #
@@ -136,7 +137,7 @@ stop_here:
 	mv	s3, a0
 
 
-	# make dictionnary of similarities 
+	# compute similarities 
 
 	mv	s11, s1
 	mv	s9, s2
@@ -161,6 +162,9 @@ loop_similarity_next:
 	inc	s11, 4
 	dec	s9
 	bnez	s9, loop_similarity
+
+
+	# compute sum of similarities
 
 	mv	s10, s0
 	clr	s4
