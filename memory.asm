@@ -1,5 +1,4 @@
 	.include "macros.inc"
-	.include "constants.inc"
 
 	.section .text
 
