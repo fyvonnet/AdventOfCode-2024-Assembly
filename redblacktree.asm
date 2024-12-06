@@ -273,7 +273,7 @@ redblacktree_pop_leftmost:
 	mv	s0, a0
 
 	bne	a1, a2, rbtpopleft_cont
-	li	a0, -1
+	li	a0, 0
 	j	rbtpopleft_end
 
 rbtpopleft_cont:
