@@ -1,4 +1,4 @@
-all: day01 day01-binsearch day02 day03 day04 day05 day06
+all: day01 day01-binsearch day02 day03 day04 day05 day06 day07
 
 day01: day01.o quicksort.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day01 day01.o quicksort.o misc.o stdio.o memory.o redblacktree.o
@@ -20,6 +20,9 @@ day05: day05.o misc.o stdio.o memory.o redblacktree.o
 
 day06: day06.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day06 day06.o misc.o stdio.o memory.o redblacktree.o
+
+day07: day07.o misc.o stdio.o
+	ld -g -o day07 day07.o misc.o stdio.o
 
 %.o: %.asm
 	as -march=rv64imv -g $< -o $@
