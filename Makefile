@@ -15,8 +15,8 @@ day03: day03.o misc.o stdio.o
 day04: day04.o misc.o stdio.o
 	ld -g -o day04 day04.o misc.o stdio.o
 
-day05: day05.o misc.o stdio.o memory.o redblacktree.o quicksort.o binsearch.o
-	ld -g -o day05 day05.o misc.o stdio.o memory.o redblacktree.o quicksort.o binsearch.o
+day05: day05.o misc.o stdio.o quicksort.o binsearch.o
+	ld -g -o day05 day05.o misc.o stdio.o quicksort.o binsearch.o
 
 day06: day06.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day06 day06.o misc.o stdio.o memory.o redblacktree.o
