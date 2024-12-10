@@ -387,6 +387,7 @@ inorder:
 	ld	a0, NODE_RIGHT(s0)
 	mv	a1, s1
 	mv	a2, s2
+	mv	a3, s3
 	call	inorder
 
 
