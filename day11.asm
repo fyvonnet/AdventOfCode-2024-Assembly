@@ -12,7 +12,6 @@
 	.section .rodata
 filename:
 	.string	"inputs/day11"
-	.string	"inputs/day11-test"
 ansfmt:	.string	"Part %d: %d\n"
 
 
@@ -64,7 +63,6 @@ loop_read_input_end:
 	li	a1, 25
 	mv	a2, s2
 	call	count_stones
-stop_here:
 
 	mv	a2, a0
 	li	a1, 1
@@ -151,7 +149,6 @@ check_cache:
 	beqz	a0, cache_not_found
 cache_found:
 	mv	s2, a0
-	#mv	a1, a0
 	mv	a0, s1
 	call	free
 	li	a0, 1
@@ -159,8 +156,7 @@ cache_found:
 	j	cache_ret
 cache_not_found:
 	li	a0, 0
-	#addi	a1, s1, CACHE_COUNT
-	mv	a1, s1
+	addi	a1, s1, CACHE_COUNT
 cache_ret:
 	ld	ra,  0(sp)
 	ld	s0,  8(sp)
@@ -214,15 +210,13 @@ blink:
 	call	blink
 	add	s4, s4, a0
 
-	#bltz	s3, skip_second_num
 	mv	a0, s3
 	mv	a1, s1
 	mv	a2, s2
 	call	blink
 	add	s4, s4, a0
 
-	#sd	s4, (s5)
-	sd	s4, CACHE_COUNT(s5)
+	sd	s4, (s5)
 blink_ret:
 	mv	a0, s4
 
