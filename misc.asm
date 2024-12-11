@@ -14,6 +14,7 @@
 	.global	empty_function
 	.global	open_input_file
 	.global	read_input_line
+	.global	power_of
 
 	.set	INPUT_LINE_BUFFER, 128
 
@@ -287,3 +288,17 @@ abs:
 skip_abs:
 	ret
 	func_end abs
+	
+
+	# a0: base
+	# a1: exponent
+power_of:
+	li	t0, 1
+loop_power_of:
+	beqz	a1, loop_power_of_end
+	mul	t0, t0, a0
+	dec	a1
+	j	loop_power_of
+loop_power_of_end:	
+	mv	a0, t0
+	ret

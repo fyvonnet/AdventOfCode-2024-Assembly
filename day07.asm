@@ -80,20 +80,6 @@ add:
 mul:
 	mul	a0, a0, a1
 	ret
-	
-
-	# a0: base
-	# a1: exponent
-power_of:
-	li	t0, 1
-loop_power_of:
-	beqz	a1, loop_power_of_end
-	mul	t0, t0, a0
-	dec	a1
-	j	loop_power_of
-loop_power_of_end:	
-	mv	a0, t0
-	ret
 
 
 	# a0: left digit
