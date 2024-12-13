@@ -19,9 +19,8 @@
 	.section .rodata
 filename:
 	.string	"inputs/day13"
-	#.string	"inputs/day13-test"
+	.string	"inputs/day13-test"
 ansfmt:	.string	"Part %d answer: %d\n"
-	#.space 	4
 
 
 	.bss
@@ -48,6 +47,7 @@ _start:
 	add	s11, a0, a1
 
 	clr	s0
+	clr	s2
 	dec	sp, 16
 loop:
 	lga	a0, arena
@@ -64,6 +64,8 @@ loop:
 	mv	a1, sp
 	call	parse_configuration
 	mv	s10, a0
+	mv	s3, a1
+	mv	s4, a2
 
 	li	t1, -1
 	sw	t1, GAME_MIN_COST(s9)
@@ -77,6 +79,17 @@ loop:
 	bltz	s1, skip_add
 	add	s0, s0, s1
 skip_add:
+	li	t0, 10000000000000
+	add	a0, s3, t0
+	add	a1, s4, t0
+	call	cramer_solve
+	li	t0, COST_A
+	li	t1, COST_B
+	mul	t0, t0, a0
+	mul	t1, t1, a1
+	add	s2, s2, t0
+	add	s2, s2, t1
+	
 	blt	s10, s11, loop
 
 	la	a0, ansfmt
@@ -84,8 +97,90 @@ skip_add:
 	mv	a2, s0
 	call	printf
 
+	la	a0, ansfmt
+	li	a1, 2
+	mv	a2, s2
+	call	printf
+
 	exit
 	func_end _start
+
+
+	# a0: a
+	# a1: b
+	# a2: c
+	# a3: d
+	func_begin matrix_determinant
+matrix_determinant:
+	mul	a0, a0, a3
+	mul	a1, a1, a2
+	sub	a0, a0, a1
+	bgtz	a0, determinant_not_neg
+	neg	a0, a0
+determinant_not_neg:
+	ret
+	func_end matrix_determinant
+
+
+
+	# a0: pos x
+	# a1: pos y
+	func_begin cramer_solve
+cramer_solve:
+	dec	sp, 48
+	sd	ra,  0(sp)
+	sd	s0,  8(sp)
+	sd	s1, 16(sp)
+	sd	s2, 24(sp)
+	sd	s3, 32(sp)
+	
+	mv	s0, a0
+	mv	s1, a1
+
+	lw	a0, GAME_BTN_A_X(s9) 	# a 
+	lw	a1, GAME_BTN_B_X(s9) 	# b
+	lw	a2, GAME_BTN_A_Y(s9) 	# c
+	lw	a3, GAME_BTN_B_Y(s9) 	# d
+	call	matrix_determinant
+	mv	s2, a0
+
+	mv	a0, s0			# a
+	lw	a1, GAME_BTN_B_X(s9) 	# b
+	mv	a2, s1			# c
+	lw	a3, GAME_BTN_B_Y(s9) 	# d
+	call	matrix_determinant
+	mv	s3, a0
+
+	lw	a0, GAME_BTN_A_X(s9) 	# a
+	mv	a1, s0			# b
+	lw	a2, GAME_BTN_A_Y(s9) 	# c
+	mv	a3, s1			# d
+	call	matrix_determinant
+
+	mv	s0, s3
+	mv	s1, a0
+	
+	clr	a0
+	clr	a1
+
+	# solve fail if no integer solution
+	rem	t1, a0, s2
+	rem	t0, s3, s2
+	bnez	t0, cramer_solve_ret
+	bnez	t1, cramer_solve_ret
+
+	div	a1, s1, s2
+	div	a0, s0, s2
+	
+cramer_solve_ret:
+	ld	ra,  0(sp)
+	ld	s0,  8(sp)
+	ld	s1, 16(sp)
+	ld	s2, 24(sp)
+	ld	s3, 32(sp)
+	dec	sp, 48
+	ret
+	func_end cramer_solve
 
 
 	# a0: total cost
