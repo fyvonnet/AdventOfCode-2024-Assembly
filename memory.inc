@@ -5,7 +5,7 @@
         sd      ra,  0(sp)
 
         mv      a1, a0
-        la      a0, \area
+        lga      a0, \area
         call    \type\()_alloc
 
         ld      ra,  0(sp)
@@ -21,7 +21,7 @@
         sd      ra,  0(sp)
 
         mv      a1, a0
-        la      a0, \area
+        lga      a0, \area
         call    \type\()_free
 
         ld      ra,  0(sp)
