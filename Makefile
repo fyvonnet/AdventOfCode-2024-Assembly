@@ -1,4 +1,4 @@
-all: day01 day01-binsearch day02 day03 day04 day05 day06 day07 day08-part1 day08-part2 day09 day10 day11 day12 day13
+all: day01 day01-binsearch day02 day03 day04 day05 day06 day07 day08-part1 day08-part2 day09 day10 day11 day12 day13 day14
 
 day01: day01.o quicksort.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day01 day01.o quicksort.o misc.o stdio.o memory.o redblacktree.o
@@ -44,6 +44,9 @@ day12: day12.o misc.o stdio.o quicksort.o memory.o redblacktree.o queue.o
 
 day13: day13.o quicksort.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day13 day13.o quicksort.o misc.o stdio.o memory.o redblacktree.o
+
+day14: day14.o misc.o stdio.o quicksort.o
+	ld -g -o day14 day14.o misc.o stdio.o quicksort.o
 
 %.o: %.asm
 	as -march=rv64imafdcv -g $< -o $@
