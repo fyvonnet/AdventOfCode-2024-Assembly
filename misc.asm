@@ -15,6 +15,8 @@
 	.global	open_input_file
 	.global	read_input_line
 	.global	power_of
+	.global	min
+	.global	minu
 
 	.set	INPUT_LINE_BUFFER, 128
 
@@ -302,3 +304,21 @@ loop_power_of:
 loop_power_of_end:	
 	mv	a0, t0
 	ret
+
+
+min:
+	ble	a0, a1, min_ret
+	mv	a0, a1
+min_ret:
+	ret
+
+
+minu:
+	bleu	a0, a1, minu_ret
+	mv	a0, a1
+minu_ret:
+	ret
+
+
+
+
