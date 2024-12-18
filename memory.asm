@@ -19,16 +19,16 @@ loop_pool_init:
 
 	# a0: pool address
 	# a1: chunk address
-	.global	chunk_free
-chunk_free:
+	.global	pool_free
+pool_free:
 	ld	t1, (a0)
 	sd	a1, (a0)
 	sd	t1, (a1)
 	ret
 
 	# a0: pool address
-	.global	chunk_alloc
-chunk_alloc:
+	.global	pool_alloc
+pool_alloc:
 	ld	t0, (a0)
 	ld	t1, (t0)
 	sd	t1, (a0)
