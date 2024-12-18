@@ -84,7 +84,6 @@ loop:
 	mv	a0, s0
 	mv	a1, s1
 	mv	a2, s2
-	mv	s4, a3
 	call	attempt_move
 	mv	s1, a0
 	mv	s2, a1
@@ -117,7 +116,6 @@ loop_find_boxes_end:
 	la	a0, ansfmt
 	li	a1, 1
 	call	printf
-stop_here:
 
 	exit
 	func_end _start
