@@ -11,6 +11,10 @@
 	mv	\reg, zero
 	.endm
 
+	.macro	SET reg
+	li	\reg, -1
+	.endm
+
 	.macro	EXIT status=0
 	li	a0, \status
 	li	a7, 93
