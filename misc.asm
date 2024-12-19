@@ -17,6 +17,7 @@
 	.global	power_of
 	.global	min
 	.global	minu
+	.global	strcmp
 
 	.set	INPUT_LINE_BUFFER, 128
 
@@ -322,3 +323,18 @@ minu_ret:
 
 
 
+strcmp:
+	lb	t0, (a0)
+	lb	t1, (a1)
+	beqz	t0, strcmp_end
+	bne	t0, t1, strcmp_end	
+	inc	a0
+	inc	a1
+	j	strcmp
+strcmp_end:
+	sub	a0, t0, t1
+	ret
+
+
+
+	
