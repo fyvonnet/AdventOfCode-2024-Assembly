@@ -93,6 +93,7 @@ loop_parse_designs:
 	call	quicksort
 
 	clr	s2
+	clr	s3
 loop:
 	la	a0, arena
 	li	a1, ARENA_SIZE
@@ -108,13 +109,20 @@ loop:
 	inc	s1, 8
 	beqz	a0, loop_end
 	call	count_ways
-	add	s2, s2, a0
+	beqz	a0, loop
+	inc	s2
+	add	s3, s3, a0
 	j	loop
 loop_end:	
 	
 	la	a0, ansfmt
-	li	a1, 2
+	li	a1, 1
 	mv	a2, s2
+	call	printf
+	
+	la	a0, ansfmt
+	li	a1, 2
+	mv	a2, s3
 	call	printf
 
 	exit
