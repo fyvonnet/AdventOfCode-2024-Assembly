@@ -192,7 +192,7 @@ loop_search_prefs:
 
 loop_search_prefs_next:
 	inc	s1
-	li	t0, 9
+	li	t0, 8
 	blt	s1, t0, loop_search_prefs
 loop_search_prefs_end:
 	sd	s2, CACHE_COUNT(s3)
