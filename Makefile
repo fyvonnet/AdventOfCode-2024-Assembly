@@ -40,8 +40,8 @@ day10: day10.o misc.o stdio.o queue.o
 day11: day11.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day11 day11.o misc.o stdio.o memory.o redblacktree.o
 
-day12: day12.o misc.o stdio.o quicksort.o memory.o redblacktree.o queue.o
-	ld -g -o day12 day12.o misc.o stdio.o quicksort.o memory.o redblacktree.o queue.o 
+day12: day12.o misc.o stdio.o queue.o
+	ld -g -o day12 day12.o misc.o stdio.o queue.o 
 
 day13: day13.o quicksort.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day13 day13.o quicksort.o misc.o stdio.o memory.o redblacktree.o
