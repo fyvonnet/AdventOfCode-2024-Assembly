@@ -11,8 +11,23 @@ day08-part2
 day09
 day10
 day11
+day12
+day13
+day14
+day15-part1
+day15-part2
+day16
+day16-part2
+day17
+day17-part2
+day18
+day19
+day19-part1
+day19-part2
 
 *.o
 inputs
 *.swp
 template.asm
+TODO
+*.bak
