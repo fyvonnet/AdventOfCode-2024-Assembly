@@ -1,5 +1,5 @@
 all: day01 day01-binsearch day02 day03 day04 day05 day06 day07 day08-part1 day08-part2 day09 day10 day11 day12 day13 day14 day15-part1 day15-part2 \
-	day16 day16-part2 day17 day17-part2 day18 day19
+	day16 day16-part2 day17-part1 day17-part2 day18 day19
 
 day01: day01.o quicksort.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day01 day01.o quicksort.o misc.o stdio.o memory.o redblacktree.o
@@ -61,11 +61,11 @@ day16: day16.o misc.o stdio.o memory.o redblacktree.o
 day16-part2: day16-part2.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day16-part2 day16-part2.o misc.o stdio.o memory.o redblacktree.o
 
-day17: day17.o misc.o stdio.o
-	ld -g -o day17 day17.o misc.o stdio.o
+day17-part1: day17-part1.o misc.o stdio.o
+	ld -g -o day17-part1 day17-part1.o misc.o stdio.o
 
-day17-part2: day17-part2.o misc.o stdio.o
-	ld -g -o day17-part2 day17-part2.o misc.o stdio.o
+day17-part2: day17-part2.o misc.o stdio.o queue.o
+	ld -g -o day17-part2 day17-part2.o misc.o stdio.o queue.o
 
 day18: day18.o misc.o stdio.o queue.o
 	ld -g -o day18 day18.o misc.o stdio.o queue.o
