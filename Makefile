@@ -52,8 +52,8 @@ day14: day14.o misc.o stdio.o quicksort.o
 day15-part1: day15-part1.o misc.o stdio.o
 	ld -g -o day15-part1 day15-part1.o misc.o stdio.o
 
-day15-part2: day15-part2.o misc.o stdio.o
-	ld -g -o day15-part2 day15-part2.o misc.o stdio.o
+day15-part2: day15-part2.o misc.o stdio.o queue.o memory.o redblacktree.o
+	ld -g -o day15-part2 day15-part2.o misc.o stdio.o queue.o memory.o redblacktree.o
 
 day16: day16.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day16 day16.o misc.o stdio.o memory.o redblacktree.o
