@@ -1,5 +1,5 @@
 all: day01 day01-binsearch day02 day03 day04 day05 day06 day07 day08-part1 day08-part2 day09 day10 day11 day12 day13 day14 day15-part1 day15-part2 \
-	day16 day16-part2 day17-part1 day17-part2 day18 day19
+	day16 day17-part1 day17-part2 day18 day19 day20 day22-part1 day22-part2
 
 day01: day01.o quicksort.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day01 day01.o quicksort.o misc.o stdio.o memory.o redblacktree.o
@@ -58,9 +58,6 @@ day15-part2: day15-part2.o misc.o stdio.o queue.o memory.o redblacktree.o
 day16: day16.o misc.o stdio.o memory.o redblacktree.o
 	ld -g -o day16 day16.o misc.o stdio.o memory.o redblacktree.o
 
-day16-part2: day16-part2.o misc.o stdio.o memory.o redblacktree.o
-	ld -g -o day16-part2 day16-part2.o misc.o stdio.o memory.o redblacktree.o
-
 day17-part1: day17-part1.o misc.o stdio.o
 	ld -g -o day17-part1 day17-part1.o misc.o stdio.o
 
@@ -72,6 +69,15 @@ day18: day18.o misc.o stdio.o queue.o
 
 day19: day19.o misc.o stdio.o memory.o redblacktree.o quicksort.o binsearch.o
 	ld -g -o day19 day19.o misc.o stdio.o memory.o redblacktree.o quicksort.o binsearch.o
+
+day20: day20.o misc.o stdio.o
+	ld -g -o day20 day20.o misc.o stdio.o
+
+day22-part1: day22-part1.o misc.o stdio.o
+	ld -g -o day22-part1 day22-part1.o misc.o stdio.o
+
+day22-part2: day22-part2.o misc.o stdio.o
+	ld -g -o day22-part2 day22-part2.o misc.o stdio.o
 
 %.o: %.asm
 	as -march=rv64imafdcv -g $< -o $@
