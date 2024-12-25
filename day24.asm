@@ -21,6 +21,7 @@ functions:
 
 filename:
 	.string	"inputs/day24"
+	.string	"inputs/day24-test"
 ansfmt:	.string	"Part %d answer: %d\n"
 wirefmt:.string "%s: %d\n"
 
@@ -90,62 +91,45 @@ loop_read_connections:
 	la	a3, compar_connections
 	call	quicksort
 
-loop_set_wires:
+	# point at the last connexion
+	addi	t0, s2, -1
+	slli	t0, t0, 4
+	add	s3, s1, t0
+
+	clr	s4
+	li	t1, 'z'
+loop_find_first_z:
+	lw	t0, CONNECT_RD(s3)
+	srli	t0, t0, 16
+	bne	t0, t1, loop_find_first_z_end
+	dec	s3, 16
+	inc	s4
+	j	loop_find_first_z
+loop_find_first_z_end:
+	inc	s3, 16
+
+	clr	s5
+	li	s6, 1
+loop_build_result:
 	mv	a0, s0
 	mv	a1, s1
 	mv	a2, s2
-	lw	a3, CONNECT_RD(s1)
+	lw	a3, CONNECT_RD(s3)
 	call	get_wire
-	inc	s1, 16
-	dec	s2
-	bnez	s2, loop_set_wires
-
-	# collect bits in reverse order
-	dec	sp, 16
-	sd	zero, 0(sp)
-	sd	zero, 8(sp)
-	mv	a0, s0
-	la	a1, get_bits
-	mv	a2, sp
-	call	redblacktree_inorder
-
-	# reverse bits
-	ld	t0, 0(sp)
-	ld	t1, 8(sp)
-	clr	a2
-loop_reverse_bits:
-	slli	a2, a2, 1
-	andi	t3, t1, 1
-	or	a2, a2, t3
-	srli	t1, t1, 1
-	dec	t0
-	bnez	t0, loop_reverse_bits
+	mul	t0, s6, a0
+	or	s5, s5, t0
+	inc	s3, 16
+	dec	s4
+	slli	s6, s6, 1
+	bnez	s4, loop_build_result
 
 	la	a0, ansfmt
 	li	a1, 1
+	mv	a2, s5
 	call	printf
 
 	exit
 	func_end _start
-
-
-
-	func_begin get_bits
-get_bits:
-	srli	t0, a0, 24
-	li	t1, 'z'
-	bne	t0, t1, get_bits_ret
-	ld	t0, 0(a1)
-	inc	t0
-	sd	t0, 0(a1)
-	andi	t0, a0, 1
-	ld	t1, 8(a1)
-	slli	t1, t1, 1
-	or	t1, t1, t0
-	sd	t1, 8(a1)
-get_bits_ret:
-	ret
-	func_end get_bits
 
 
 
@@ -331,35 +315,5 @@ compar_wires:
 	ret
 	func_end compar_wires
 
-
-
-	func_begin print_wire 
-print_wire:
-	dec	sp, 16
-	sd	x0,  0(sp)
-	sd	ra,  8(sp)
-
-	li	t1, 0xFFFFFF00
-	and	t0, a0, t1
-	sw	t0, (sp)
-
-	lb	t0,  0(sp)
-	lb	t1,  1(sp)
-	lb	t2,  2(sp)
-	lb	t3,  3(sp)
-	sb	t0,  3(sp)
-	sb	t1,  2(sp)
-	sb	t2,  1(sp)
-	sb	t3,  0(sp)
-
-	mv	a1, sp
-	andi	a2, a0, 0x000000FF
-	la	a0, wirefmt
-	call	printf
-	
-	ld	ra,  8(sp)
-	inc	sp, 16
-	ret
-	func_end print_wire 
 
 
