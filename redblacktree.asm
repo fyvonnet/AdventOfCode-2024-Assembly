@@ -72,11 +72,11 @@ redblacktree_init:
 	.size	redblacktree_init, .-redblacktree_init
 
 
+
 	# a0: tree
 	# a1: value
-	.globl	redblacktree_search
-	.type	redblacktree_search, @function
-redblacktree_search:
+	.type	redblacktree_search_node, @function
+redblacktree_search_node:
 	addi	sp, sp, -64
 	sd	ra,  0(sp)
 	sd	s0,  8(sp)
@@ -92,28 +92,28 @@ redblacktree_search:
 	ld	s3, TREE_ROOT(s0)
 	ld	s4, TREE_NIL(s0)
 
-search_loop:
-	beq	s3, s4, search_fail
+search_node_loop:
+	beq	s3, s4, search_node_fail
 	mv	a0, s1
 	ld	a1, NODE_VALUE(s3)
 	jalr	ra, s2
-	bltz	a0, search_left
-	bgtz	a0, search_right
-	ld	a0, NODE_VALUE(s3)
-	j	search_end
+	bltz	a0, search_node_left
+	bgtz	a0, search_node_right
+	mv	a0, s3
+	j	search_node_end
 
-search_left:
+search_node_left:
 	ld	s3, NODE_LEFT(s3)
-	j	search_loop
+	j	search_node_loop
 	
-search_right:
+search_node_right:
 	ld	s3, NODE_RIGHT(s3)
-	j	search_loop
+	j	search_node_loop
 	
-search_fail:
+search_node_fail:
 	clr	a0
 
-search_end:
+search_node_end:
 	ld	ra,  0(sp)
 	ld	s0,  8(sp)
 	ld	s1, 16(sp)
@@ -122,10 +122,28 @@ search_end:
 	ld	s4, 40(sp)
 	addi	sp, sp, 64
 	ret
-	.size	redblacktree_search, .-redblacktree_search
+	.size	redblacktree_search_node, .-redblacktree_search_node
 
 
 	
+	# a0: tree
+	# a1: value
+	.globl	redblacktree_search
+	.type	redblacktree_search, @function
+redblacktree_search:
+	dec	sp, 16
+	sd	ra,  0(sp)
+	call	redblacktree_search_node
+	beqz	a0, no_load
+	ld	a0, NODE_VALUE(a0)
+no_load:
+	ld	ra,  0(sp)
+	inc	sp, 16
+	ret
+	.size	redblacktree_search, .-redblacktree_search
+
+
+
 	# a0: tree
 	# a1: value
 	.globl	redblacktree_insert_or_free
@@ -884,6 +902,7 @@ tree_maximum_loop:
 tree_maximum_end:
 	mv	a0, a1
 	ret
+
 	
 
 	# a0: root
@@ -920,9 +939,12 @@ kill_rec_ret:
 	# a1: value free function
 	.globl redblacktree_kill
 redblacktree_kill:
-	dec	sp, 16
+	dec	sp, 48
 	sd	ra,  0(sp)
 	sd	s0,  8(sp)
+	sd	s9, 16(sp)
+	sd	s10, 24(sp)
+	sd	s11, 32(sp)
 
 	mv	s0, a0
 
@@ -942,7 +964,10 @@ redblacktree_kill:
 
 	ld	ra,  0(sp)
 	ld	s0,  8(sp)
-	inc	sp, 16
+	ld	s9, 16(sp)
+	ld	s10, 24(sp)
+	ld	s11, 32(sp)
+	inc	sp, 48
 	ret
 
 
