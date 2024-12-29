@@ -886,3 +886,65 @@ tree_maximum_end:
 	ret
 	
 
+	# a0: root
+kill_rec:
+	beq	a0, s9, kill_rec_ret
+
+	dec	sp, 16
+	sd	ra,  0(sp)
+	sd	s0,  8(sp)
+
+	mv	s0, a0
+
+	ld	a0, NODE_LEFT(s0)
+	call	kill_rec
+
+	ld	a0, NODE_RIGHT(s0)
+	call	kill_rec
+
+	ld	a0, NODE_VALUE(s0)
+	jalr	ra, s11
+
+	mv	a0, s0
+	jalr	ra, s10
+
+	ld	ra,  0(sp)
+	ld	s0,  8(sp)
+	inc	sp, 16
+kill_rec_ret:
+	ret
+	
+
+
+	# a0: T
+	# a1: value free function
+	.globl redblacktree_kill
+redblacktree_kill:
+	dec	sp, 16
+	sd	ra,  0(sp)
+	sd	s0,  8(sp)
+
+	mv	s0, a0
+
+	mv	s11, a1
+	ld	s10, TREE_FREE(s0)
+	ld	s9, TREE_NIL(s0)
+	ld	a0, TREE_ROOT(s0)
+	call	kill_rec
+
+	ld	t0, TREE_FREE(s0)
+	ld	a0, TREE_NIL(s0)
+	jalr	ra, t0
+
+	ld	t0, TREE_FREE(s0)
+	mv	a0, s0
+	jalr	ra, t0
+
+	ld	ra,  0(sp)
+	ld	s0,  8(sp)
+	inc	sp, 16
+	ret
+
+
+
+
