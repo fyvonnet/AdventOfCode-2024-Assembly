@@ -972,4 +972,30 @@ redblacktree_kill:
 
 
 
+	# a0: T
+	# a1: value
+	.globl redblacktree_delete
+redblacktree_delete:
+	dec	sp, 64
+	sd	ra,  0(sp)
+	sd	s0,  8(sp)
+	#sd	s1, 16(sp)
 
+	mv	s0, a0
+	#mv	s1, a1
+
+	call	redblacktree_search_node
+	beqz	a0, redblacktree_delete_ret
+
+	mv	a1, a0
+	mv	a0, s0
+	call	delete
+
+	li	a0, 1
+
+redblacktree_delete_ret:
+	ld	ra,  0(sp)
+	ld	s0,  8(sp)
+	#ld	s1, 16(sp)
+	inc	sp, 64
+	ret
