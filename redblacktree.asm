@@ -999,3 +999,19 @@ redblacktree_delete_ret:
 	#ld	s1, 16(sp)
 	inc	sp, 64
 	ret
+
+
+
+	# a0: T
+	.globl redblacktree_is_empty
+redblacktree_is_empty:
+	ld	t0, TREE_ROOT(a0)
+	ld	t1, TREE_NIL(a0)
+	set	a0
+	beq	t0, t1, redblacktree_is_empty_ret
+	clr	a0
+redblacktree_is_empty_ret:
+	ret
+
+
+
