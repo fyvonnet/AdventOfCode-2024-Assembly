@@ -1,4 +1,4 @@
-	#.globl	redblacktree_delete
+	#.globl	redblacktree_remove
 	#.globl	redblacktree_pop_max
 	
 	.include "macros.inc"
@@ -906,8 +906,8 @@ tree_maximum_end:
 	
 
 	# a0: root
-kill_rec:
-	beq	a0, s9, kill_rec_ret
+delete_rec:
+	beq	a0, s9, delete_rec_ret
 
 	dec	sp, 16
 	sd	ra,  0(sp)
@@ -916,10 +916,10 @@ kill_rec:
 	mv	s0, a0
 
 	ld	a0, NODE_LEFT(s0)
-	call	kill_rec
+	call	delete_rec
 
 	ld	a0, NODE_RIGHT(s0)
-	call	kill_rec
+	call	delete_rec
 
 	ld	a0, NODE_VALUE(s0)
 	jalr	ra, s11
@@ -930,15 +930,15 @@ kill_rec:
 	ld	ra,  0(sp)
 	ld	s0,  8(sp)
 	inc	sp, 16
-kill_rec_ret:
+delete_rec_ret:
 	ret
 	
 
 
 	# a0: T
 	# a1: value free function
-	.globl redblacktree_kill
-redblacktree_kill:
+	.globl redblacktree_delete
+redblacktree_delete:
 	dec	sp, 48
 	sd	ra,  0(sp)
 	sd	s0,  8(sp)
@@ -952,7 +952,7 @@ redblacktree_kill:
 	ld	s10, TREE_FREE(s0)
 	ld	s9, TREE_NIL(s0)
 	ld	a0, TREE_ROOT(s0)
-	call	kill_rec
+	call	delete_rec
 
 	ld	t0, TREE_FREE(s0)
 	ld	a0, TREE_NIL(s0)
@@ -974,8 +974,8 @@ redblacktree_kill:
 
 	# a0: T
 	# a1: value
-	.globl redblacktree_delete
-redblacktree_delete:
+	.globl redblacktree_remove
+redblacktree_remove:
 	dec	sp, 64
 	sd	ra,  0(sp)
 	sd	s0,  8(sp)
@@ -983,7 +983,7 @@ redblacktree_delete:
 	mv	s0, a0
 
 	call	redblacktree_search_node
-	beqz	a0, redblacktree_delete_ret
+	beqz	a0, redblacktree_remove_ret
 
 	mv	a1, a0
 	mv	a0, s0
@@ -991,7 +991,7 @@ redblacktree_delete:
 
 	li	a0, 1
 
-redblacktree_delete_ret:
+redblacktree_remove_ret:
 	ld	ra,  0(sp)
 	ld	s0,  8(sp)
 	inc	sp, 64

@@ -128,7 +128,7 @@ loop_end:
 
 	mv	a0, s1
 	la	a1, empty_function
-	call	redblacktree_kill
+	call	redblacktree_delete
 
 	mv	s11, s0
 
@@ -238,7 +238,7 @@ bron_kerbosh:
 	mv	s9, a0
 	mv	a0, s10
 	la	a1, empty_function
-	call	redblacktree_kill
+	call	redblacktree_delete
 	mv	a0, s0
 	call	create_set_copy
 	mv	s10, a0
@@ -301,19 +301,19 @@ loop_bron_kerbosh:
 
 	mv	a0, s6
 	la	a1, empty_function
-	call	redblacktree_kill
+	call	redblacktree_delete
 
 	mv	a0, s7
 	la	a1, empty_function
-	call	redblacktree_kill
+	call	redblacktree_delete
 
 	mv	a0, s8
 	la	a1, empty_function
-	call	redblacktree_kill
+	call	redblacktree_delete
 
 	mv	a0, s1
 	mv	a1, s4
-	call	redblacktree_delete
+	call	redblacktree_remove
 
 	mv	a0, s2
 	mv	a1, s4
