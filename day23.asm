@@ -222,13 +222,12 @@ bron_kerbosh:
 	mv	s2, a2
 
 	mv	a0, s1
-	call	redblacktree_count_nodes
-	mv	s3, a0
-	bnez	a0, bron_kerbosh_cont
+	call	redblacktree_is_empty
+	beqz	a0, bron_kerbosh_cont
 
 	mv	a0, s2
-	call	redblacktree_count_nodes
-	bnez	a0, bron_kerbosh_cont
+	call	redblacktree_is_empty
+	beqz	a0, bron_kerbosh_cont
 
 	# clique found
 	mv	a0, s0
@@ -248,6 +247,9 @@ bron_kerbosh:
 
 bron_kerbosh_cont:
 	# allocate stack space for P vertices
+	mv	a0, s1
+	call	redblacktree_count_nodes
+	mv	s3, a0
 	li	t1, 16
 	mul	t0, s3, t1
 	sub	sp, sp, t0
