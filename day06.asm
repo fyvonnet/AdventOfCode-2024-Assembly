@@ -9,6 +9,9 @@
 	.set	DOWN,	2
 	.set	LEFT,	3
 
+	.set	CHUNKS_SIZE,	64
+	.set	CHUNKS_COUNT, 	8*1024
+
 
 	.section .rodata
 
@@ -25,34 +28,25 @@ moves:	.byte	 0, -1	# up
 
 	.bss
 	.balign 8
-
-
-	.set	ARENA_SIZE,	256*1024
-arena:	.space	ARENA_SIZE
+pool:	.space	8 + (CHUNKS_SIZE * CHUNKS_COUNT)
 
 
 
 	.text
 	.balign 8
 
-	create_alloc_func	alloc, arena, arena
-	create_free_func	free, arena, arena
-
 	
 	func_begin _start
 _start:
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
+	la      a0, pool
+	li      a1, CHUNKS_COUNT
+	li      a2, CHUNKS_SIZE
+	call    pool_init
 
 	la	a0, filename
 	call	map_input_file
 	mv	s10, a0
 	add	s11, a0, a1
-
-	#mv	a0, a1
-	#call	alloc
-	#addi	s0, a0, 4
 
 	sub	sp, sp, a1
 	
@@ -64,8 +58,7 @@ _start:
 	addi	s0, sp, 4
 
 	la	a0, compar_tree
-	la	a1, alloc
-	la	a2, free
+	la	a1, pool
 	call	redblacktree_init
 	mv	s1, a0
 
@@ -106,9 +99,6 @@ loop_pop_coords:
 	sw	a1, 4(sp)
 	j	loop_pop_coords
 loop_pop_coords_end:
-
-	nop
-
 	clr	s6
 loop:
 	lw	s4, 0(sp)
@@ -116,13 +106,13 @@ loop:
 	inc	sp, 8
 	bltz	s4, loop_end
 
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
+	la      a0, pool
+	li      a1, CHUNKS_COUNT
+	li      a2, CHUNKS_SIZE
+	call    pool_init
 
 	la	a0, compar_tree
-	la	a1, alloc
-	la	a2, free
+	la	a1, pool
 	call	redblacktree_init
 	mv	s1, a0
 
@@ -153,8 +143,6 @@ loop_end:
 	mv	a2, s6
 	call	printf
 
-stop_here:
-
 	exit
 	func_end _start
 
@@ -173,7 +161,7 @@ set_pop:
 	j	set_pop_ret
 
 set_pop_notempty:
-	li	t2, 0xFFFFFFFF
+	li	t2, 0x00000000FFFFFFFF
 	and	a1, a0, t2
 	srli	a0, a0, 32
 
