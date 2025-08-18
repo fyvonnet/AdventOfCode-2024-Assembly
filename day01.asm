@@ -4,6 +4,9 @@
 	.set	NUMBER,	0
 	.set	SCORE,	4
 
+	.set	CHUNKS_SIZE,	64
+	.set	CHUNKS_COUNT,	2048
+
 	.section .rodata
 file_name:
 	.string	"inputs/day01"
@@ -12,23 +15,15 @@ ansfmt:
 
 	.bss
 	.balign 8
-	.set 	ARENA_SIZE,	64*1024
-arena:
-	.space	ARENA_SIZE
+pool:   .space  8 + (CHUNKS_SIZE * CHUNKS_COUNT)
 
 
 	.text
 	.balign 8
 
-	create_alloc_func 	alloc, arena, arena
-	create_free_func 	free, arena, arena
-
 	.globl _start
 	func_begin _start
 _start:
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
 
 	la	a0, file_name
 	call	map_input_file
@@ -36,51 +31,34 @@ _start:
 	add	s11, a0, a1
 
 
+	# allocate vectors
+
+	li 	t0, 4096
+	sub	sp, sp, t0
+	mv	s0, sp
+	mv	s3, sp
+
+	li 	t0, 4096
+	sub	sp, sp, t0
+	mv	s1, sp
+	mv	s4, sp
+
+	
 	# read input in the stack
 
 	clr	s2
 	mv	a0, s10
 loop_read:
-	dec	sp, 8
 	call	parse_integer
-	sw	a1, 0(sp)
+	sw	a1, 0(s3)
 	call	skip_to_digit
 	call	parse_integer
-	sw	a1, 4(sp)
+	sw	a1, 0(s4)
 	inc	s2
 	inc	a0			# skip \n
+	inc	s3, 4
+	inc	s4, 4
 	blt	a0, s11, loop_read
-
-
-	# allocate vectors
-
-	li	t0, 4
-	mul	s3, s2, t0
-
-	mv	a0, s3
-	call	alloc
-	mv	s0, a0
-
-	mv	a0, s3
-	call	alloc
-	mv	s1, a0
-
-	
-	# copy input from stack to vectors
-
-	mv	s10, s0
-	mv	s11, s1
-	mv	t2,  s2
-loop_copy:
-	lw	t0, 0(sp)
-	lw	t1, 4(sp)
-	sw	t0, (s10)
-	sw	t1, (s11)
-	inc	s10, 4
-	inc	s11, 4
-	dec	t2
-	inc	sp, 8
-	bnez	t2, loop_copy
 
 
 	# sort vectors
@@ -130,9 +108,13 @@ loop_compute:
 	# PART 2 #
 	##########
 
+	la	a0, pool
+	li      a1, CHUNKS_COUNT
+	li      a2, CHUNKS_SIZE
+	call    pool_init
+
 	la	a0, compar_tree
-	la	a1, alloc
-	la	a2, free
+	la	a1, pool
 	call	redblacktree_init
 	mv	s3, a0
 
@@ -142,23 +124,17 @@ loop_compute:
 	mv	s11, s1
 	mv	s9, s2
 loop_similarity:
-	li	a0, 8
-	call	alloc
-	mv	s4, a0
+	la	a0, pool
+	call	pool_alloc
 	lw	t0, (s11)
-	li	t1, 1
-	sw	t0, NUMBER(s4)
-	sw	t1, SCORE(s4)
+	sw	t0, NUMBER(a0)
+	sw	x0, SCORE(a0)
+	mv	a1, a0
 	mv	a0, s3
-	mv	a1, s4
-	call	redblacktree_insert
-	beqz	a0, loop_similarity_next
+	call	redblacktree_insert_or_free
 	lw	t0, SCORE(a0)
 	inc	t0
 	sw	t0, SCORE(a0)
-	mv	a0, s4
-	call	free
-loop_similarity_next:
 	inc	s11, 4
 	dec	s9
 	bnez	s9, loop_similarity
@@ -168,9 +144,8 @@ loop_similarity_next:
 
 	mv	s10, s0
 	clr	s4
-	la	a0, 8
-	call	alloc
-	mv	s5, a0
+	dec	sp, 16
+	mv	s5, sp
 	mv	s6, s2
 loop_compute2:
 	lw	s7, (s10)
