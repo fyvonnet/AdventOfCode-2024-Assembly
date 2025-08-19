@@ -18,27 +18,24 @@ ansfmt:	.string	"Part %d: %d\n"
 
 	.bss
 	.balign 8
-	.set	ARENA_SIZE,	16*1024*1024
-arena:	.space	ARENA_SIZE
+	.set	CHUNKS_SIZE,	64
+	.set	CHUNKS_COUNT,	256 * 1024
+pool:	.space	8 + (CHUNKS_SIZE * CHUNKS_COUNT)
 
 
 	.text
 	.balign 8
 
 
-	create_alloc_func alloc, arena, arena
-	create_free_func free, arena, arena
-
-
 	func_begin _start
 _start:
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
+	la	a0, pool
+	li	a1, CHUNKS_COUNT
+	li	a2, CHUNKS_SIZE
+	call	pool_init
 
 	la	a0, compar_cache
-	la	a1, alloc
-	la	a2, free
+	la	a1, pool
 	call	redblacktree_init
 	mv	s2, a0
 
@@ -137,8 +134,8 @@ check_cache:
 	mv	s1, a1
 	mv	s2, a2
 
-	li	a0, 24
-	call	alloc
+	la	a0, pool
+	call	pool_alloc
 	sd	s1, CACHE_NUMBER(a0)
 	sd	s2, CACHE_REMAIN(a0)
 	mv	s1, a0
@@ -149,8 +146,9 @@ check_cache:
 	beqz	a0, cache_not_found
 cache_found:
 	mv	s2, a0
-	mv	a0, s1
-	call	free
+	la	a0, pool
+	mv	a1, s1
+	call	pool_free
 	li	a0, 1
 	ld	a1, CACHE_COUNT(s2)
 	j	cache_ret
