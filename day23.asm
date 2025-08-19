@@ -18,20 +18,12 @@ endfmt:	.string	"\008 \n"
 
 	.bss
 	.balign 8
-	.set	ARENA_SIZE, 256*1024
-arena:	.space	ARENA_SIZE
-	.set	CHUNKS_COUNT,	256*1024
+	.set	CHUNKS_COUNT,	512 * 1024
 	.set	CHUNKS_SIZE,	  40
 pool:	.space	8 + (CHUNKS_SIZE * CHUNKS_COUNT)
 
 	.text
 	.balign 8
-
-	create_alloc_func graph_alloc, arena, arena
-	create_free_func graph_free, arena, arena
-
-	create_alloc_func set_alloc, pool, pool
-	create_free_func set_free, pool, pool
 
 	func_begin _start
 _start:
@@ -40,18 +32,13 @@ _start:
 	mv	s10, a0
 	add	s11, a0, a1
 
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
-
 	la	a0, pool
 	li	a1, CHUNKS_COUNT
 	li	a2, CHUNKS_SIZE
 	call	pool_init
 
 	la	a0, compar_name
-	la	a1, graph_alloc
-	la	a2, graph_free
+	la	a1, pool
 	call	redblacktree_init
 	mv	s0, a0
 
@@ -127,7 +114,7 @@ loop_end:
 	call	printf
 
 	mv	a0, s1
-	la	a1, empty_function
+	clr	a1
 	call	redblacktree_delete
 
 	mv	s11, s0
@@ -237,7 +224,7 @@ bron_kerbosh:
 	# largest clique found
 	mv	s9, a0
 	mv	a0, s10
-	la	a1, empty_function
+	clr	a1
 	call	redblacktree_delete
 	mv	a0, s0
 	call	create_set_copy
@@ -300,15 +287,15 @@ loop_bron_kerbosh:
 	call	bron_kerbosh
 
 	mv	a0, s6
-	la	a1, empty_function
+	clr	a1
 	call	redblacktree_delete
 
 	mv	a0, s7
-	la	a1, empty_function
+	clr	a1
 	call	redblacktree_delete
 
 	mv	a0, s8
-	la	a1, empty_function
+	clr	a1
 	call	redblacktree_delete
 
 	mv	a0, s1
@@ -390,8 +377,7 @@ create_empty_set:
 	dec	sp, 16
 	sd	ra,  (sp)
 	la	a0, compar_direct
-	la	a1, set_alloc
-	la	a2, set_free
+	la	a1, pool
 	call	redblacktree_init
 	ld	ra,  (sp)
 	inc	sp, 16
@@ -554,8 +540,10 @@ insert_connection:
 	mv	s1, a1
 	mv	s2, a2
 
-	la	a0, 16
-	call	graph_alloc
+	#la	a0, 16
+	#call	graph_alloc
+	la	a0, pool
+	call	pool_alloc
 	sw	s1, COMPUTER_NAME(a0)
 	sd	x0, COMPUTER_LINKS(a0)
 
@@ -565,8 +553,10 @@ insert_connection:
 
 	mv	s0, a0
 
-	la	a0, 16
-	call	graph_alloc
+	#la	a0, 16
+	#call	graph_alloc
+	la	a0, pool
+	call	pool_alloc
 	
 	ld	t0, COMPUTER_LINKS(s0)
 	sd	a0, COMPUTER_LINKS(s0)
