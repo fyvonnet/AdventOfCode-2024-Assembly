@@ -6,7 +6,6 @@
 	.set	COUNT, 		-4
 	.set	COORD_X, 	 0
 	.set	COORD_Y, 	 4
-	#.set	FREQ, 		 8
 	.set	FLAG, 		 8
 
 	.set	DATA_SET, 	 0
@@ -28,24 +27,19 @@
 filename:
 	.string	"inputs/day08"
 ansfmt:	.string	"Part %d: %d\n"
-entryfmt: .string "freq=%c, count=%d, coords="
-coordfmt: .string " (%d,%d)"
 
 
 
 	.bss
 	.balign 8
-	.set	ARENA_SIZE, 1024*1024
-arena:	.space	ARENA_SIZE
+        .set    CHUNKS_SIZE,    64
+        .set    CHUNKS_COUNT,   2 * 1024
+pool:   .space  8 + (CHUNKS_SIZE * CHUNKS_COUNT)
 
 
 
 	.text
 	.balign 8
-
-
-	create_alloc_func alloc, arena, arena
-	create_free_func free, arena, arena
 
 
 	func_begin _start
@@ -54,28 +48,29 @@ _start:
 	call	open_input_file
 	mv	s10, a0
 
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
+	la	a0, pool
+	li	a1, CHUNKS_COUNT
+	li	a2, CHUNKS_SIZE
+	call	pool_init
 
 	# set of antinode coordinates
 	la	a0, compar_coords
-	la	a1, alloc
-	clr	a2
+	la	a1, pool
 	call	redblacktree_init
 	mv	s3, a0
 
 	# frequencies catalog
 	la	a0, compar_entries
-	la	a1, alloc
-	la	a2, free
+	la	a1, pool
 	call	redblacktree_init
 	mv	s4, a0
 
 	# line buffer
-	la	a0, 64
-	call	alloc
-	mv	s2, a0
+	#la	a0, pool
+	#call	pool_alloc
+	#mv	s2, a0
+	dec	sp, 64
+	mv	s2, sp
 
 	mv	a0, s10
 	mv	a1, s2
@@ -112,7 +107,6 @@ loop_chars_end:
 	sd	s0, DATA_LIMIT(sp)
 
 	mv	a0, s4
-	#la	a1, print_entry
 	la	a1, process_entry
 	mv	a2, sp
 	call	redblacktree_inorder
@@ -211,8 +205,8 @@ catalog_insert:
 	mv	s2, a2
 	mv	s3, a3
 
-	la	a0, ENTRY_SIZE
-	call	alloc
+	la	a0, pool
+	call	pool_alloc
 	sb	a3, ENTRY_FREQ(a0)
 	sd	x0, ENTRY_LST(a0)
 	sw	x0, ENTRY_COUNT(a0)
@@ -226,8 +220,8 @@ catalog_insert:
 	inc	t0
 	sw	t0, ENTRY_COUNT(s0)
 
-	la	a0, NODE_SIZE
-	call	alloc
+	la	a0, pool
+	call	pool_alloc
 
 	sw	s1, NODE_COORD_X(a0)
 	sw	s2, NODE_COORD_Y(a0)
@@ -491,38 +485,5 @@ compar_coords:
 	sub	a0, a0, a1
 	ret
 	func_end compar_coords
-
-
-
-print_entry:
-	dec	sp, 32
-	sd	ra, (sp)
-	sd	s0, 8(sp)
-	sd	s1, 16(sp)
-
-	mv	s0, a0
-	ld	s1, ENTRY_LST(s0)
-	la	a0, entryfmt
-	lb	a1, ENTRY_FREQ(s0)
-	lw	a2, ENTRY_COUNT(s0)
-	call	printf
-
-	
-loop_print_coords:
-	la	a0, coordfmt
-	lw	a1, NODE_COORD_X(s1)
-	lw	a2, NODE_COORD_Y(s1)
-	call	printf
-	ld	s1, NODE_NEXT(s1)
-	bnez	s1, loop_print_coords
-	la	a0, '\n'
-	call	putc
-
-
-	ld	ra, (sp)
-	ld	s0, 8(sp)
-	ld	s1, 16(sp)
-	inc	sp, 32
-	ret
 
 

@@ -13,16 +13,14 @@ ansfmt:	.string	"Part %d: %d\n"
 
 	.bss
 	.balign 8
-	.set	ARENA_SIZE, 32*1024
-arena:	.space	ARENA_SIZE
+	.set    CHUNKS_SIZE,    64
+	.set    CHUNKS_COUNT,   512
+pool:	.space	8 + (CHUNKS_SIZE * CHUNKS_COUNT)
 
 
 
 	.text
 	.balign 8
-
-
-	create_alloc_func alloc, arena, arena
 
 
 	func_begin _start
@@ -38,13 +36,13 @@ _start:
 	and	sp, sp, t0
 	add	s0, sp, 4
 
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
+	la	a0, pool
+	li	a1, CHUNKS_COUNT
+	li	a2, CHUNKS_SIZE
+	call	pool_init
 
 	la	a0, compar_coords
-	la	a1, alloc
-	clr	a2
+	la	a1, pool
 	call	redblacktree_init
 	mv	s3, a0
 
