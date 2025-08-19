@@ -62,13 +62,8 @@ ansfmt:	.string	"Part %d answer: %d\n"
 	.bss
 	.balign	8
 	.set	CHUNKS_SIZE, 40
-	.set	CHUNKS_COUNT, 4*1024
-	.set	QUEUE_POOL_SIZE, 8 + (CHUNKS_SIZE * CHUNKS_COUNT)
-queue_pool:
-	.space	QUEUE_POOL_SIZE
-	.set	VISITED_ARENA_SIZE,	4*1024*1024
-visited_arena:
-	.space	VISITED_ARENA_SIZE
+	.set	CHUNKS_COUNT, 4*512*1024
+pool:	.space	8 + (CHUNKS_SIZE * CHUNKS_COUNT)
 global_values:	
 	.space	64
 
@@ -77,32 +72,21 @@ global_values:
 	.text
 	.balign 8
 
-	create_alloc_func queue_alloc, queue_pool, pool
-	create_free_func queue_free, queue_pool, pool
-	create_alloc_func visited_alloc, visited_arena, arena
-	create_free_func visited_free, visited_arena, arena
-
 
 	func_begin _start
 _start:
-	lga	a0, queue_pool
+	lga	a0, pool
 	li	a1, CHUNKS_COUNT
 	li	a2, CHUNKS_SIZE
 	call	pool_init
 
-	lga	a0, visited_arena
-	li	a1, VISITED_ARENA_SIZE
-	call	arena_init
-
 	lga	a0, queue_compar
-	lga	a1, queue_alloc
-	lga	a2, queue_free
+	lga	a1, pool
 	call	redblacktree_init
 	mv	s1, a0
 	
 	lga	a0, visited_compar
-	lga	a1, visited_alloc
-	lga	a2, visited_free
+	lga	a1, pool
 	call	redblacktree_init
 	mv	s2, a0
 	
@@ -350,8 +334,8 @@ is_visited:
 	mv	s3, a3
 	mv	s4, a4
 
-	li	a0, VISITED_SIZE
-	call	visited_alloc
+	la	a0, pool
+	call	pool_alloc
 	mv	s5, a0
 
 	sw	s1, VISITED_COORD_X(s5)
@@ -367,12 +351,12 @@ is_visited:
 	beqz	a0, is_visited_ret
 
 	mv	s0, a0
-	mv	a0, s5
-	call	visited_free
+	la	a0, pool
+	mv	a1, s5
+	call	pool_free
 
 	li	t6, 1
 	ld	t0, VISITED_SCORE(s0)
-	#ble	t0, s4, is_visited_ret
 	blt	t0, s4, is_visited_ret
 	sd	s4, VISITED_SCORE(s0)
 	clr	t6
@@ -479,8 +463,8 @@ queue_push:
 	mv	s3, a3
 	mv	s4, a4
 
-	la	a0, QUEUE_SIZE	
-	call	queue_alloc
+	la	a0, pool
+	call	pool_alloc
 
 	sw	s1, QUEUE_COORD_X(a0)
 	sw	s2, QUEUE_COORD_Y(a0)
@@ -507,7 +491,6 @@ visited_compar:
 	ld	t0, VISITED_COORDS(a0)
 	ld	t1, VISITED_COORDS(a1)
 	sub	t0, t0, t1
-	#j	visited_compar_ret
 	bnez	t0, visited_compar_ret
 	lb	t0, VISITED_DIR(a0)
 	lb	t1, VISITED_DIR(a1)
