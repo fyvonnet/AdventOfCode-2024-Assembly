@@ -25,21 +25,19 @@ ansfmt:	.string	"Part %d answer: %d\n"
 
 	.bss
 	.balign 8
-game_data:
-	.space	64
-	.set	ARENA_SIZE, 512*1024
-arena:	.space 	ARENA_SIZE
+	.set	CHUNKS_COUNT, 16 * 1024
+	.set	CHUNKS_SIZE, 64
+pool:	.space 8 + (CHUNKS_COUNT * CHUNKS_SIZE)
 
 
 	.text
 	.balign 8
 
-	create_alloc_func alloc, arena, arena
-
 
 	func_begin _start
 _start:
-	la	s9, game_data
+	dec	sp, 32
+	mv	s9, sp
 
 	la	a0, filename
 	call	map_input_file
@@ -48,15 +46,15 @@ _start:
 
 	clr	s0
 	clr	s2
-	dec	sp, 16
+	dec	sp, 64
 loop:
-	lga	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
+	la	a0, pool
+	li	a1, CHUNKS_COUNT
+	li	a2, CHUNKS_SIZE
+	call	pool_init
 
 	la	a0, compar_cache
-	la	a1, alloc	
-	clr	a2
+	la	a1, pool
 	call	redblacktree_init
 	sd	a0, GAME_CACHE(s9)
 
@@ -115,14 +113,12 @@ matrix_determinant:
 	mul	a0, a0, a3
 	mul	a1, a1, a2
 	sub	a0, a0, a1
-	bgtz	a0, determinant_not_neg
-	neg	a0, a0
-determinant_not_neg:
 	ret
 	func_end matrix_determinant
 
 
 
+	# Cramer's rule
 	# a0: pos x
 	# a1: pos y
 	func_begin cramer_solve
@@ -164,8 +160,8 @@ cramer_solve:
 	clr	a1
 
 	# solve fail if no integer solution
-	rem	t1, a0, s2
-	rem	t0, s3, s2
+	rem	t1, s1, s2
+	rem	t0, s0, s2
 	bnez	t0, cramer_solve_ret
 	bnez	t1, cramer_solve_ret
 
@@ -284,7 +280,7 @@ parse_configuration:
 	sd	s2, 16(sp)
 
 	mv	s1, a1
-	la	s2, game_data
+	mv	s2, s9
 
 	mv	a0, s10
 	addi	a1, s2, 8
