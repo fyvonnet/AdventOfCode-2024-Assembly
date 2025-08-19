@@ -16,20 +16,18 @@
 	.set	SYMB_DOWN, 	'v'
 
 	.set	QUEUE_SIZE,	  8
-	.set	QUEUE_COUNT,	600
+	.set	QUEUE_COUNT,	512
 	.set	QUEUE_X,	  0
 	.set	QUEUE_Y,	  4
 
 	.set	CHUNKS_SIZE,	 40
-	.set	CHUNKS_COUNT,	600
+	.set	CHUNKS_COUNT,	512
 
 
 	.section .rodata
 
 filename:
 	.string	"inputs/day15"
-	.string	"inputs/day15-mytest"
-	.string	"inputs/day15-test3"
 ansfmt:	.string	"Part %d answer: %d\n"
 
 directions:
@@ -56,9 +54,6 @@ pool:	.space	8 + (CHUNKS_SIZE * CHUNKS_COUNT)
 
 	.text
 	.balign 8
-
-	create_alloc_func alloc, pool, pool
-	create_free_func free, pool, pool
 
 
 	func_begin _start
@@ -162,7 +157,7 @@ box_not_found:
 loop_find_boxes_end:
 
 	la	a0, ansfmt
-	li	a1, 1
+	li	a1, 2
 	call	printf
 
 	exit
@@ -329,8 +324,7 @@ not_up:
 	beq	s3, t0, use_compar_up
 	la	a0, compar_down
 use_compar_up:
-	la	a1, alloc
-	la	a2, free
+	la	a1, pool
 	call	redblacktree_init
 	mv	s7, a0
 
