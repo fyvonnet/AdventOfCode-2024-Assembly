@@ -21,23 +21,19 @@ functions:
 
 filename:
 	.string	"inputs/day24"
-	.string	"inputs/day24-test"
 ansfmt:	.string	"Part %d answer: %d\n"
 wirefmt:.string "%s: %d\n"
 
 
 	.bss
 	.balign 8
-	.set	ARENA_SIZE, 1024*1024
-arena:	.space	ARENA_SIZE
-
+	.set	CHUNKS_COUNT, 1024*1024
+	.set	CHUNKS_SIZE, 64
+pool:	.zero	8 + (CHUNKS_COUNT * CHUNKS_SIZE)
+	
 
 	.text
 	.balign 8
-
-
-	create_alloc_func alloc, arena, arena
-
 
 	func_begin _start
 _start:
@@ -46,13 +42,13 @@ _start:
 	mv	s10, a0
 	add	s11, a0, a1
 
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
+	la	a0, pool
+	li	a1, CHUNKS_COUNT
+	li	a2, CHUNKS_SIZE
+	call	pool_init
 	
 	la	a0, compar_wires
-	la	a1, alloc
-	clr	a2
+	la	a1, pool
 	call	redblacktree_init
 	mv	s0, a0
 
