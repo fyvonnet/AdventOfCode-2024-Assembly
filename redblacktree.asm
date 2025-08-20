@@ -10,8 +10,12 @@
 	.set	TREE_ROOT,	 0
 	.set	TREE_NIL,	 8
 	.set	TREE_COMPARE,	16
-	.set	TREE_ALLOC,	24
-	.set	TREE_FREE,	32
+	.set	TREE_POOL,	24
+	.set	TREE_NNODES,	32
+
+	# TO BE REMOVED #
+#	.set	TREE_ALLOC,	24
+#	.set	TREE_FREE,	32
 
 	.set	NODE_SIZE,	40
 	.set	NODE_LEFT,	 0	# 8 bytes
@@ -23,8 +27,7 @@
 	.text
 
 	# a0:	compare
-	# a1: 	alloc
-	# a2:	free
+	# a1: 	pool
 	.globl	redblacktree_init
 	.type	redblacktree_init, @function
 redblacktree_init:
@@ -32,23 +35,23 @@ redblacktree_init:
 	sd	ra,  0(sp)
 	sd	s0,  8(sp)
 	sd	s1, 16(sp)
-	sd	s2, 24(sp)
 	sd	s3, 32(sp)
 
 	mv	s0, a0
 	mv	s1, a1
-	mv	s2, a2
 
-	li	a0, TREE_SIZE
-	jalr	ra, s1
+	# allocate memory chunk for tree struct
+	mv 	a0, s1
+	call	pool_alloc
 	mv	s3, a0
 
 	sd	s0, TREE_COMPARE(s3)
-	sd	s1, TREE_ALLOC(s3)
-	sd	s2, TREE_FREE(s3)
+	sd	s1, TREE_POOL(s3)
+	sd	x0, TREE_NNODES(s3)
 
-	li	a0, NODE_SIZE
-	jalr	ra, s1
+	# allocate memory for NIL node
+	mv 	a0, s1
+	call	pool_alloc
 	
 	sd	a0, TREE_ROOT(s3)
 	sd	a0, TREE_NIL(s3)
@@ -65,7 +68,6 @@ redblacktree_init:
 	ld	ra,  0(sp)
 	ld	s0,  8(sp)
 	ld	s1, 16(sp)
-	ld	s2, 24(sp)
 	ld	s3, 32(sp)
 	addi	sp, sp, 64
 	ret
@@ -165,9 +167,9 @@ redblacktree_insert_or_free:
 	beqz	a0, redblacktree_insert_or_free_ret
 
 	mv	s2, a0
-	ld	t0, TREE_FREE(s0)
-	mv	a0, s1
-	jalr	ra, t0
+	ld	a0, TREE_POOL(s0)
+	mv	a1, s1
+	call	pool_free
 	li	a1, -1
 
 redblacktree_insert_or_free_ret:
@@ -226,9 +228,8 @@ move_right:
 	ld	s3, NODE_RIGHT(s3)
 	j	si_while_loop
 si_while_loop_end:
-	la	a0, NODE_SIZE
-	ld	t0, TREE_ALLOC(s0)
-	jalr	ra, t0
+	ld	a0, TREE_POOL(s0)
+	call	pool_alloc
 	mv	s6, a0
 	sd	s4, NODE_LEFT(a0)	# z.left = T.nil
 	sd	s4, NODE_RIGHT(a0)	# z.right = T.nil
@@ -236,6 +237,10 @@ si_while_loop_end:
 	li	t0, RED
 	sb	t0, NODE_COLOR(a0)	# z.color = RED
 	sd	s1, NODE_VALUE(a0)
+
+	ld	t0, TREE_NNODES(s0)
+	inc	t0
+	sd	t0, TREE_NNODES(s0)
 
 	bne	s5, s4, tree_not_empty	# y != T.nil
 	sd	a0, TREE_ROOT(s0)
@@ -304,9 +309,9 @@ rbtpopleft_cont:
 	mv	a1, s5
 	call	delete
 
-	mv	a0, s5
-	ld	t0, TREE_FREE(s0)
-	jalr	ra, t0
+	ld	a0, TREE_POOL(s0)
+	mv	a1, s5
+	call	pool_free
 
 	mv	a0, s4
 
@@ -321,32 +326,11 @@ rbtpopleft_end:
 	.size	redblacktree_pop_leftmost, .-redblacktree_pop_leftmost
 
 	
-	# a0: node value (ignored)
-	# a1: ptr to counter
-	.type 	count_nodes, @function
-count_nodes:
-	ld	t0, (a1)
-	addi	t0, t0, 1
-	sd	t0, (a1)
-	ret
-	.size	count_nodes, .-count_nodes
-
-
 	# a0: tree
 	.globl	redblacktree_count_nodes
 	.type redblacktree_count_nodes, @function
 redblacktree_count_nodes:
-	addi	sp, sp, -16
-	sd	x0,  0(sp)
-	sd	ra,  8(sp)
-
-	la	a1, count_nodes
-	mv	a2, sp
-	call	redblacktree_inorder
-
-	ld	a0,  0(sp)
-	ld	ra,  8(sp)
-	addi	sp, sp, 16
+	ld	a0, TREE_NNODES(a0)
 	ret
 	.size	redblacktree_count_nodes, .-redblacktree_count_nodes
 
@@ -495,6 +479,10 @@ del_endif:
 	mv	a1, s2			# x
 	call	rb_delete_fixup
 del_end:
+	ld	t0, TREE_NNODES(s10)
+	dec	t0
+	sd	t0, TREE_NNODES(s10)
+
 	ld	s0,   0(sp)
 	ld	s1,   8(sp)
 	ld	s2,  16(sp)
@@ -921,11 +909,14 @@ delete_rec:
 	ld	a0, NODE_RIGHT(s0)
 	call	delete_rec
 
+	beqz	s11, skip_del_value
 	ld	a0, NODE_VALUE(s0)
 	jalr	ra, s11
+skip_del_value:
 
-	mv	a0, s0
-	jalr	ra, s10
+	mv 	a0, s10
+	mv	a1, s0
+	call	pool_free
 
 	ld	ra,  0(sp)
 	ld	s0,  8(sp)
@@ -948,19 +939,20 @@ redblacktree_delete:
 
 	mv	s0, a0
 
-	mv	s11, a1
-	ld	s10, TREE_FREE(s0)
 	ld	s9, TREE_NIL(s0)
+	ld	s10, TREE_POOL(s0)
+	mv	s11, a1
+
 	ld	a0, TREE_ROOT(s0)
 	call	delete_rec
 
-	ld	t0, TREE_FREE(s0)
-	ld	a0, TREE_NIL(s0)
-	jalr	ra, t0
+	mv	a0, s10
+	ld	a1, TREE_NIL(s0)
+	call	pool_free
 
-	ld	t0, TREE_FREE(s0)
-	mv	a0, s0
-	jalr	ra, t0
+	mv	a0, s10
+	mv	a1, s0
+	call	pool_free
 
 	ld	ra,  0(sp)
 	ld	s0,  8(sp)
