@@ -16,14 +16,13 @@ ansfmt:	.string	"Part %d answer: %d\n"
 
 	.bss
 	.balign 8
-	.set	ARENA_SIZE, 4*1024
-arena:	.space	ARENA_SIZE
+	.set	CHUNKS_COUNT,	128
+	.set	CHUNKS_SIZE,	40
+pool:	.space	8 + (CHUNKS_COUNT * CHUNKS_SIZE)
+
 
 	.text
 	.balign 8
-
-	create_alloc_func alloc, arena, arena
-	create_free_func free, arena, arena
 
 	func_begin _start
 _start:
@@ -95,13 +94,13 @@ loop_parse_designs:
 	clr	s2
 	clr	s3
 loop:
-	la	a0, arena
-	li	a1, ARENA_SIZE
-	call	arena_init
+	la	a0, pool
+	li	a1, CHUNKS_COUNT
+	li	a2, CHUNKS_SIZE
+	call	pool_init
 
 	la	a0, compar_tree
-	la	a1, alloc
-	clr	a2
+	la	a1, pool
 	call	redblacktree_init
 	mv	s9, a0
 
@@ -149,8 +148,8 @@ count_ways:
 	lb	t0, (s0)
 	beqz	t0, count_ways_found
 
-	la	a0, CACHE_SIZE
-	call	alloc
+	la	a0, pool
+	call	pool_alloc
 	mv	s3, a0
 	sd	s0, CACHE_STRING(s3)
 	mv	a0, s9
@@ -160,8 +159,9 @@ count_ways:
 	beqz	a0, cache_fail
 
 	ld	s2, CACHE_COUNT(a0)
-	mv	a0, s3
-	call	free
+	la	a0, pool
+	mv	a1, s3
+	call	pool_free
 	mv	a0, s2
 	j	count_ways_ret
 
