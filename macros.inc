@@ -1,4 +1,19 @@
-        
+        .macro  MUL2 reg
+        slli    \reg, \reg, 1
+        .endm
+
+        .macro  MUL4 reg
+        slli    \reg, \reg, 2
+        .endm
+
+        .macro  MUL8 reg
+        slli    \reg, \reg, 3
+        .endm
+
+        .macro  MUL16 reg
+        slli    \reg, \reg, 4
+        .endm
+
 	.macro  INC reg, val=1
         addi \reg, \reg, \val
         .endm
