@@ -4,21 +4,21 @@
 	.globl	_start
 
 
-	.set	CACHE_STRING,	   0
-	.set	CACHE_COUNT,	   8
-	.set	CACHE_SIZE,	  16
-
 
 	.section .rodata
 filename:
 	.string	"inputs/day19"
 ansfmt:	.string	"Part %d answer: %d\n"
 
+
+
 	.bss
 	.balign 8
-	.set	CHUNKS_COUNT,	128
-	.set	CHUNKS_SIZE,	40
-pool:	.space	8 + (CHUNKS_COUNT * CHUNKS_SIZE)
+        .set    CACHE_LEN, 64
+cache:  .space  8 * CACHE_LEN
+cache_end:
+        .size   cache, . - cache
+
 
 
 	.text
@@ -94,20 +94,21 @@ loop_parse_designs:
 	clr	s2
 	clr	s3
 loop:
-	la	a0, pool
-	li	a1, CHUNKS_COUNT
-	li	a2, CHUNKS_SIZE
-	call	pool_init
-
-	la	a0, compar_tree
-	la	a1, pool
-	call	redblacktree_init
-	mv	s9, a0
+        la      t0, cache
+        li      t1, 64
+        li      t2, -1
+loop_init_cache:
+        sd      t2, (t0)
+        inc     t0, 8
+        dec     t1
+        bnez    t1, loop_init_cache
 
 	ld	a0, (s1)
 	inc	s1, 8
 	beqz	a0, loop_end
+        clr     a1
 	call	count_ways
+        li      a1, 0
 	beqz	a0, loop
 	inc	s2
 	add	s3, s3, a0
@@ -132,7 +133,7 @@ loop_end:
 	# a0: design
 	func_end count_ways
 count_ways:
-	dec	sp, 80
+	dec	sp, 96
 	sd	x0,  0(sp)
 	sd	x0,  8(sp)
 	sd	x0, 16(sp)
@@ -142,39 +143,30 @@ count_ways:
 	sd	s1, 48(sp)
 	sd	s2, 56(sp)
 	sd	s3, 64(sp)
+	sd	s4, 80(sp)
 
 	mv	s0, a0
+        mv      s1, a1
 
 	lb	t0, (s0)
 	beqz	t0, count_ways_found
 
-	la	a0, pool
-	call	pool_alloc
-	mv	s3, a0
-	sd	s0, CACHE_STRING(s3)
-	mv	a0, s9
-	mv	a1, s3
-	call	redblacktree_insert
-
-	beqz	a0, cache_fail
-
-	ld	s2, CACHE_COUNT(a0)
-	la	a0, pool
-	mv	a1, s3
-	call	pool_free
-	mv	a0, s2
-	j	count_ways_ret
+        la      t0, cache
+        slli    t1, s1, 3
+        add     s3, t0, t1
+        ld      a0, (s3)
+        bltz    a0, cache_fail
+        j	count_ways_ret
 
 cache_fail:
-
-	clr	s1
+	clr	s4
 	clr	s2
 loop_search_prefs:
 
-	add	t1, s0, s1
+	add	t1, s0, s4
 	lb	t2, (t1)
 	beqz	t2, loop_search_prefs_end
-	add	t1, sp, s1
+	add	t1, sp, s4
 	sb	t2, (t1)
 
 	mv	a0, s10
@@ -185,17 +177,18 @@ loop_search_prefs:
 	call	binsearch
 	beqz	a0, loop_search_prefs_next
 
-	addi	t0, s1, 1
+	addi	t0, s4, 1
 	add	a0, s0, t0
+        add     a1, s1, t0
 	call	count_ways
 	add	s2, s2, a0
 
 loop_search_prefs_next:
-	inc	s1
+	inc	s4
 	li	t0, 8
-	blt	s1, t0, loop_search_prefs
+	blt	s4, t0, loop_search_prefs
 loop_search_prefs_end:
-	sd	s2, CACHE_COUNT(s3)
+	sd	s2, (s3)
 	mv	a0, s2
 	j	count_ways_ret
 count_ways_found:
@@ -206,7 +199,8 @@ count_ways_ret:
 	ld	s1, 48(sp)
 	ld	s2, 56(sp)
 	ld	s3, 64(sp)
-	inc	sp, 80
+	ld	s4, 80(sp)
+	inc	sp, 96
 	ret
 	func_end count_ways
 	
@@ -245,17 +239,4 @@ compar_strings:
 	inc	sp, 16
 	ret
 	func_end compar_strings
-
-
-
-	func_begin compar_tree
-compar_tree:
-	ld	a0, CACHE_STRING(a0)
-	ld	a1, CACHE_STRING(a1)
-	sub	a0, a0, a1
-	ret
-	func_end compar_tree
-
-
-
 
